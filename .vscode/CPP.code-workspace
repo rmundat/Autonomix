@@ -1,0 +1,26 @@
+{
+    "folders": [
+        {
+            "path": ".."
+        }
+    ],
+    "settings": {
+        "files.associations": {
+            "iostream": "cpp",
+            "any": "cpp",
+            "*.tcc": "cpp",
+            "deque": "cpp",
+            "list": "cpp",
+            "unordered_map": "cpp",
+            "unordered_set": "cpp",
+            "vector": "cpp",
+            "expected": "cpp",
+            "optional": "cpp",
+            "ranges": "cpp",
+            "variant": "cpp",
+            "istream": "cpp",
+            "streambuf": "cpp",
+            "map": "cpp"
+        }
+    }
+}

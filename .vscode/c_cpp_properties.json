@@ -1,0 +1,32 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/pkg/cppad/install/include",
+                "${workspaceFolder}/pkg/CarlaPy/WindowsNoEditor/PythonAPI/dependencies/include",
+                "${workspaceFolder}/pkg/CarlaPy/WindowsNoEditor/PythonAPI/dependencies/include/system",
+                "${workspaceFolder}/pkg/CarlaPy/WindowsNoEditor/Plugins/carlaviz/backend/third_party/LibCarla/source",
+                "${workspaceFolder}/pkg/CarlaPy/WindowsNoEditor/Plugins/carlaviz/backend/third_party/xviz/include/xviz",
+                "C:/Users/syhin/AppData/Local/Programs/Python/Python37/Lib/site-packages/casadi/include",
+                "C:/Apps/sourceDocker/ad-dev-stack/pkg/eigen-3.4.0",
+                "C:/msys64/mingw64/include/c++/12.2.0",
+                "C:/Users/syhin/AppData/Local/Programs/Python/Python37/include",
+                "C:/Users/syhin/.conda/pkgs/pybind11-2.10.1-py310h59b6b97_0/Lib/site-packages/pybind11/include",
+                "C:/Users/syhin/AppData/Local/Programs/miniconda3/envs/py-carla/Lib/site-packages/numpy/core/include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "compilerPath": "C:\\msys64\\mingw64\\bin\\gcc.exe",
+            "cStandard": "gnu17",
+            "cppStandard": "gnu++17",
+            "intelliSenseMode": "windows-gcc-x64"
+            // "compileCommands": "${workspaceFolder}/pkg/UnrealEngine_4.26/Engine/Source/ThirdParty/ShaderConductor/ShaderConductor/External/DirectXShaderCompiler/tools/clang/bindings/python/tests/cindex/INPUTS/compile_commands.json"
+        }
+    ],
+    "version": 4
+}

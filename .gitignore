@@ -1,0 +1,5 @@
+ADsim/
+src/__pycache__/
+*.exe
+pkg/
+proto/
