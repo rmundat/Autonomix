@@ -3,3 +3,6 @@ src/__pycache__/
 *.exe
 pkg/
 proto/
+modules/test_manager/
+modules/simulation/src/_carla-interface.py
+modules/simulation/src/__pycache__/
