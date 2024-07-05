@@ -40,6 +40,12 @@ planner_open_space_config = {
         "traj_steer_change_penalty": 0.0,
         "grid_a_star_xy_resolution": 1.0,
         "node_radius": 0.5,
+        "traj_kappa_contraint_ratio": 0.7,
+        "max_explored_num": 5000,
+        "desired_explored_num": 5000,
+        "traj_short_length_penalty": 10,
+        "traj_expected_shortest_length": 1,
+        "astar_max_search_time": 105.0,
     },
     "dual_variable_warm_start_config": {
         "weight_d": 1.0,

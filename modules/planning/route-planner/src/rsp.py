@@ -28,18 +28,16 @@ class ReedShepp:
     def __init__(self):
         self.vehicle_param_ = vehicle_param
         self.planner_open_space_config_ = planner_open_space_config
-        self.max_kappa_ = math.tan(
-            self.vehicle_param_["max_steer_angle"]
-            * self.planner_open_space_config_["warm_start_config"]["traj_kappa_contraint_ratio"]
-            / self.vehicle_param_["steer_ratio"]
-        ) / self.vehicle_param_["wheel_base"]
-        self.traj_forward_penalty_ = self.planner_open_space_config_["warm_start_config"]["traj_forward_penalty"]
-        self.traj_back_penalty_ = self.planner_open_space_config_["warm_start_config"]["traj_back_penalty"]
-        self.traj_gear_switch_penalty_ = self.planner_open_space_config_["warm_start_config"]["traj_gear_switch_penalty"]
-        self.traj_steer_penalty_ = self.planner_open_space_config_["warm_start_config"]["traj_steer_penalty"]
-        self.traj_steer_change_penalty_ = self.planner_open_space_config_["warm_start_config"]["traj_steer_change_penalty"]
-        self.traj_short_length_penalty_ = self.planner_open_space_config_["warm_start_config"]["traj_short_length_penalty"]
-        self.traj_expected_shortest_length_ = self.planner_open_space_config_["warm_start_config"]["traj_expected_shortest_length"]
+        self.max_kappa_ = math.tan(vehicle_param["max_steer_angle"] * \
+            planner_open_space_config["warm_start_config"]["traj_kappa_contraint_ratio"] \
+                / vehicle_param["steer_ratio"]) / vehicle_param["wheel_base"]
+        self.traj_forward_penalty_ = planner_open_space_config["warm_start_config"]["traj_forward_penalty"]
+        self.traj_back_penalty_ = planner_open_space_config["warm_start_config"]["traj_back_penalty"]
+        self.traj_gear_switch_penalty_ = planner_open_space_config["warm_start_config"]["traj_gear_switch_penalty"]
+        self.traj_steer_penalty_ = planner_open_space_config["warm_start_config"]["traj_steer_penalty"]
+        self.traj_steer_change_penalty_ = planner_open_space_config["warm_start_config"]["traj_steer_change_penalty"]
+        self.traj_short_length_penalty_ = planner_open_space_config["warm_start_config"]["traj_short_length_penalty"]
+        self.traj_expected_shortest_length_ = planner_open_space_config["warm_start_config"]["traj_expected_shortest_length"]
         print(f"max kappa: {self.max_kappa_}")
         print(f"traj_short_length_penalty_: {self.traj_short_length_penalty_}")
 
@@ -58,15 +56,14 @@ class ReedShepp:
         omega = normalize_angle(tau - u + v - phi)
         return tau, omega
 
-    def shortest_rsp(self, start_node: Node3d, end_node: Node3d) -> ReedSheppPath:
-        optimal_path = ReedSheppPath()
+    def shortest_rsp(self, start_node: Node3d, end_node: Node3d, optimal_path) -> ReedSheppPath:
         all_possible_paths = []
         if not self.generate_rsps(start_node, end_node, all_possible_paths):
             print("Fail to generate different combination of Reed Shepp paths")
             return optimal_path
 
         start_dire = 1
-        if not start_node.get_direc():
+        if not start_node.GetDirec():
             start_dire = -1
 
         min_cost = float('inf')
@@ -74,7 +71,7 @@ class ReedShepp:
         for i, path in enumerate(all_possible_paths):
             cost = 0
             steering_radius = path.radius / self.max_kappa_
-            steer_change_penalty_cost = math.atan(self.vehicle_param_.wheel_base() / steering_radius * 2.0) * self.traj_steer_change_penalty_
+            steer_change_penalty_cost = math.atan(vehicle_param["wheel_base"] / steering_radius * 2.0) * self.traj_steer_change_penalty_
             for j, length in enumerate(path.segs_lengths):
                 if path.segs_types[j] != 'S':
                     cost += abs(length) * (self.traj_steer_penalty_) / self.max_kappa_ * path.radius
@@ -103,14 +100,14 @@ class ReedShepp:
             print("Fail to generate local configurations(x, y, phi) in SetRSP")
             return optimal_path
 
-        if abs(all_possible_paths[optimal_path_index].x[-1] - end_node.get_x()) > 1e-3 or \
-           abs(all_possible_paths[optimal_path_index].y[-1] - end_node.get_y()) > 1e-3 or \
-           normalize_angle(all_possible_paths[optimal_path_index].phi[-1] - end_node.get_phi()) > 1e-3:
+        if abs(all_possible_paths[optimal_path_index].x[-1] - end_node.GetX()) > 1e-3 or \
+           abs(all_possible_paths[optimal_path_index].y[-1] - end_node.GetY()) > 1e-3 or \
+           normalize_angle(all_possible_paths[optimal_path_index].phi[-1] - end_node.GetPhi()) > 1e-3:
             print("RSP end position not right")
             for i, seg_type in enumerate(all_possible_paths[optimal_path_index].segs_types):
                 print(f"types are {seg_type}")
             print(f"x, y, phi are: {all_possible_paths[optimal_path_index].x[-1]}, {all_possible_paths[optimal_path_index].y[-1]}, {all_possible_paths[optimal_path_index].phi[-1]}")
-            print(f"end x, y, phi are: {end_node.get_x()}, {end_node.get_y()}, {end_node.get_phi()}")
+            print(f"end x, y, phi are: {end_node.GetX()}, {end_node.GetY()}, {end_node.GetPhi()}")
             return optimal_path
 
         optimal_path.cost = min_cost
@@ -130,11 +127,11 @@ class ReedShepp:
         return True
 
     def generate_rsp(self, start_node: Node3d, end_node: Node3d, all_possible_paths: List[ReedSheppPath]) -> bool:
-        dx = end_node.get_x() - start_node.get_x()
-        dy = end_node.get_y() - start_node.get_y()
-        dphi = end_node.get_phi() - start_node.get_phi()
-        c = math.cos(start_node.get_phi())
-        s = math.sin(start_node.get_phi())
+        dx = end_node.GetX() - start_node.GetX()
+        dy = end_node.GetY() - start_node.GetY()
+        dphi = end_node.GetPhi() - start_node.GetPhi()
+        c = math.cos(start_node.GetPhi())
+        s = math.sin(start_node.GetPhi())
         # normalize the initial point to (0,0,0)
         x = (c * dx + s * dy) * self.max_kappa_
         y = (-s * dx + c * dy) * self.max_kappa_
@@ -778,7 +775,7 @@ class ReedShepp:
     def generate_local_configurations(self, start_node: Node3d, end_node: Node3d,
                                     shortest_path: ReedSheppPath) -> bool:
         radius = shortest_path.radius
-        step_scaled = self.planner_open_space_config_.warm_start_config().step_size() * self.max_kappa_
+        step_scaled = planner_open_space_config["warm_start_config"]["step_size"] * self.max_kappa_
         print(f"shortest_path->total_length {shortest_path.total_length}")
         point_num = int(math.floor(shortest_path.total_length / step_scaled * radius +
                                 len(shortest_path.segs_lengths) + 4))
@@ -826,13 +823,13 @@ class ReedShepp:
             pgear.pop()
 
         for i in range(len(px)):
-            shortest_path.x.append(math.cos(-start_node.get_phi()) * px[i] +
-                                math.sin(-start_node.get_phi()) * py[i] +
-                                start_node.get_x())
-            shortest_path.y.append(-math.sin(-start_node.get_phi()) * px[i] +
-                                math.cos(-start_node.get_phi()) * py[i] +
-                                start_node.get_y())
-            shortest_path.phi.append(normalize_angle(pphi[i] + start_node.get_phi()))
+            shortest_path.x.append(math.cos(-start_node.GetPhi()) * px[i] +
+                                math.sin(-start_node.GetPhi()) * py[i] +
+                                start_node.GetX())
+            shortest_path.y.append(-math.sin(-start_node.GetPhi()) * px[i] +
+                                math.cos(-start_node.GetPhi()) * py[i] +
+                                start_node.GetY())
+            shortest_path.phi.append(normalize_angle(pphi[i] + start_node.GetPhi()))
 
         shortest_path.gear = pgear
         for i in range(len(shortest_path.segs_lengths)):

@@ -87,10 +87,6 @@ class Node2d:
 class Node3d:
     def __init__(self, traversed_x, traversed_y, traversed_phi, XYbounds):
         
-        self.step_size = 1
-        self.traversed_x = [] if traversed_x is None else traversed_x
-        self.traversed_y = [] if traversed_y is None else traversed_y
-        self.traversed_phi = [] if traversed_phi is None else traversed_phi
         self.traj_cost = 0.0
         self.heuristic_cost = 0.0
         self.cost = 0.0
@@ -103,14 +99,19 @@ class Node3d:
         self.phi = traversed_phi[-1]
         
         # Assuming xy_grid_resolution and phi_grid_resolution are known and defined
-        self.planner_open_space_config_ = planner_open_space_config
-        self.xy_grid_resolution_ = self.planner_open_space_config_['warm_start_config']['xy_grid_resolution']
-        phi_grid_resolution = self.planner_open_space_config_['warm_start_config']['phi_grid_resolution']
+        self.xy_grid_resolution_ = planner_open_space_config['warm_start_config']['xy_grid_resolution']
+        self.phi_grid_resolution_ = planner_open_space_config['warm_start_config']['phi_grid_resolution']
 
         self.x_grid = int((self.x - XYbounds[0]) / self.xy_grid_resolution_)
         self.y_grid = int((self.y - XYbounds[2]) / self.xy_grid_resolution_)
-        self.phi_grid = int((self.phi - (-np.pi)) / phi_grid_resolution)
+        self.phi_grid = int((self.phi - (-np.pi)) / self.phi_grid_resolution_)
+        
+        self.traversed_x = [] if traversed_x is None else traversed_x
+        self.traversed_y = [] if traversed_y is None else traversed_y
+        self.traversed_phi = [] if traversed_phi is None else traversed_phi
+        
         self.index = self.ComputeStringIndex(self.x_grid, self.y_grid, self.phi_grid)
+        self.step_size = len(self.traversed_x)
 
     def GetCost(self):
         return self.traj_cost + self.heuristic_cost
@@ -135,9 +136,6 @@ class Node3d:
 
     def GetPhi(self):
         return self.phi
-
-    def __eq__(self, other):
-        return self.GetIndex() == other.GetIndex()
 
     def GetIndex(self):
         return self.index
@@ -195,6 +193,12 @@ class Node3d:
     @staticmethod
     def ComputeStringIndex(x_grid, y_grid, phi_grid):
         return f"{x_grid}_{y_grid}_{phi_grid}"
+    
+    def __eq__(self, other):
+        return self.GetIndex() == other.GetIndex()
+    
+    def __lt__(self, other):
+        return other.cost >= self.cost
 
 class GridAStarResult:
     def __init__(self):
@@ -203,17 +207,17 @@ class GridAStarResult:
         self.path_cost = 0.0
 
 class GridSearch:
-    def __init__(self, open_space_conf):
+    def __init__(self, open_space_conf, XYbounds):
         self.xy_grid_resolution_ = open_space_conf["warm_start_config"]["grid_a_star_xy_resolution"]
         self.node_radius_ = open_space_conf["warm_start_config"]["node_radius"]
-        self.XYbounds_ = []
+        self.XYbounds_ = XYbounds
         self.max_grid_x_ = 0.0
         self.max_grid_y_ = 0.0
         self.start_node_ = None
         self.end_node_ = None
         self.final_node_ = None
         self.obstacles_linesegments_vec_ = []
-        self.dp_map_ = {}
+        # self.dp_map_ = {}
 
     def euclidean_distance(self, x1: float, y1: float, x2: float, y2: float) -> float:
         return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
@@ -325,8 +329,8 @@ class GridSearch:
         print(f"Explored node num: {explored_node_num}")
         return True
 
-    def generate_dp_map(self, ex, ey, xy_bounds, obstacles_linesegments_vec, open_pq, open_set):
-        self.dp_map_ = {}
+    def generate_dp_map(self, ex, ey, xy_bounds, obstacles_linesegments_vec, open_pq, dp_map):
+        open_set = {}
         self.xy_bounds_ = xy_bounds
         self.max_grid_y_ = int(round((self.xy_bounds_[3] - self.xy_bounds_[2]) / self.xy_grid_resolution_))
         self.max_grid_x_ = int(round((self.xy_bounds_[1] - self.xy_bounds_[0]) / self.xy_grid_resolution_))
@@ -338,12 +342,12 @@ class GridSearch:
         while open_pq:
             current_id = heapq.heappop(open_pq)
             current_node = open_set[current_id.index]
-            self.dp_map_[current_node.get_index()] = current_node
+            dp_map[current_node.get_index()] = current_node
             next_nodes = self.generate_next_nodes(current_node, self.xy_bounds_)
             for next_node in next_nodes:
                 if not self.check_constraints(next_node):
                     continue
-                if next_node.get_index() in self.dp_map_:
+                if next_node.get_index() in dp_map:
                     continue
                 if next_node.get_index() not in open_set:
                     explored_node_num += 1
@@ -358,10 +362,10 @@ class GridSearch:
         print(f"explored node num is {explored_node_num}")
         return True
 
-    def check_dp_map(self, sx: float, sy: float) -> float:
+    def check_dp_map(self, sx: float, sy: float, dp_map) -> float:
         index = Node2d.calc_index(sx, sy, self.xy_grid_resolution_, self.XYbounds_)
-        if index in self.dp_map_:
-            return self.dp_map_[index].get_cost() * self.xy_grid_resolution_
+        if index in dp_map:
+            return dp_map[index].get_cost() * self.xy_grid_resolution_
         else:
             return float("inf")
 
